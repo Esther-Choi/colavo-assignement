@@ -1,6 +1,5 @@
 import { Icon } from '@iconify/react';
-import { Box, Stack } from '@mui/material';
-import AppBar from '@mui/material/AppBar';
+import { AppBar, Box, Divider, Paper, Stack } from '@mui/material';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import IconButton from '@mui/material/IconButton';
@@ -9,6 +8,9 @@ import Toolbar from '@mui/material/Toolbar';
 import { TransitionProps } from '@mui/material/transitions';
 import Typography from '@mui/material/Typography';
 import * as React from 'react';
+import { Service } from '../@types/Service';
+import comma from '../utils/comma';
+import { Discount, DiscountWithTargets } from '../@types/Discount';
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -19,8 +21,19 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function Discounts() {
+export default function Discounts({
+  discounts,
+  setSelectedDiscounts,
+  selectedServices,
+}: {
+  discounts: { [key: string]: Discount };
+  setSelectedDiscounts: React.Dispatch<
+    React.SetStateAction<{ [key: string]: DiscountWithTargets }>
+  >;
+  selectedServices: { [key: string]: Partial<Service> };
+}) {
   const [open, setOpen] = React.useState(false);
+  const [checkedDiscounts, setCheckedDiscounts] = React.useState<string[]>([]);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -28,6 +41,15 @@ export default function Discounts() {
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleSubmit = () => {
+    const newObj: { [key: string]: DiscountWithTargets } = {};
+    checkedDiscounts.map((el: string) => {
+      newObj[el] = { ...discounts[el], targets: Object.keys(selectedServices) };
+    });
+    setSelectedDiscounts({ ...newObj });
+    handleClose();
   };
 
   return (
@@ -39,8 +61,8 @@ export default function Discounts() {
         fullWidth
         size="large"
         sx={{
-          bgcolor: '#FDF1F5',
-          color: '#ED8EB0',
+          bgcolor: '#FFF1F6',
+          color: '#EC8AAE',
           boxShadow: 'none',
           py: 1.5,
           borderRadius: '12px',
@@ -54,35 +76,155 @@ export default function Discounts() {
         onClose={handleClose}
         TransitionComponent={Transition}
       >
-        <AppBar sx={{ position: 'relative', boxShadow: 'none' }}>
-          <Toolbar sx={{ bgcolor: 'white', justifyContent: 'center' }}>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={handleClose}
-              aria-label="close"
+        <Box sx={{ position: 'relative', boxShadow: 'none' }}>
+          <AppBar
+            sx={{
+              boxShadow: 'none',
+              bgcolor: 'white',
+            }}
+          >
+            <Toolbar
               sx={{
-                position: 'absolute',
-                left: 20,
+                bgcolor: 'white',
+                justifyContent: 'space-between',
+                bb: 'none',
               }}
             >
-              <Icon icon={'mingcute:close-fill'} color="#b3b3b3" />
-            </IconButton>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="subtitle2" color="black">
-                곽지우
-              </Typography>
-              <Typography variant="body2" color="#b3b3b3">
-                2019.6.17 오후 5:30
-              </Typography>
-            </Box>
-          </Toolbar>
-        </AppBar>
-        <Stack>
-          <Button>시술</Button>
-          <Button>할인</Button>
+              <IconButton
+                edge="start"
+                color="inherit"
+                onClick={handleClose}
+                aria-label="close"
+              >
+                <Icon icon={'mingcute:close-fill'} color="#b3b3b3" />
+              </IconButton>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" color="black">
+                  할인
+                </Typography>
+              </Box>
+              <IconButton
+                edge="end"
+                color="inherit"
+                onClick={handleClose}
+                aria-label="close"
+              >
+                <Icon icon={'mingcute:add-fill'} color="#b3b3b3" />
+              </IconButton>
+            </Toolbar>
+          </AppBar>
+        </Box>
+        <Stack sx={{ p: 2, pb: 18 }} gap={1}>
+          <Stack direction={'row'} justifyContent={'space-between'}>
+            <Typography variant="subtitle2" color="#b3b3b3">
+              커트
+            </Typography>
+            <Typography variant="subtitle2" color="#b3b3b3">
+              바버,헤어
+            </Typography>
+          </Stack>
+          <Divider />
+          <Stack gap={2}>
+            {Object.keys(discounts)?.map((id: string) => (
+              <DicountItem
+                id={id}
+                discount={discounts[id]}
+                checkedDiscounts={checkedDiscounts}
+                setCheckedDiscounts={setCheckedDiscounts}
+              />
+            ))}
+          </Stack>
         </Stack>
+        <Paper
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            p: 2,
+            bgcolor: '#9A85ED',
+            textAlign: 'center',
+          }}
+          elevation={3}
+        >
+          <Typography variant="body2" color="white">
+            할인을 선택하세요(여러 개 선택가능)
+          </Typography>
+          <Button
+            variant="contained"
+            fullWidth
+            size="large"
+            sx={{
+              bgcolor: '#AE9EF0',
+              mt: 2,
+              py: 1.5,
+            }}
+            onClick={handleSubmit}
+          >
+            완료
+          </Button>
+        </Paper>
       </Dialog>
     </React.Fragment>
+  );
+}
+
+function DicountItem({
+  id,
+  discount,
+  setCheckedDiscounts,
+  checkedDiscounts,
+}: {
+  id: string;
+  discount: Discount;
+  setCheckedDiscounts: React.Dispatch<React.SetStateAction<string[]>>;
+  checkedDiscounts: string[];
+}) {
+  const [isCheck, setIsCheck] = React.useState<boolean>(
+    checkedDiscounts.includes(id)
+  );
+
+  const handleCheck = () => {
+    if (isCheck) {
+      setCheckedDiscounts(checkedDiscounts.filter((str) => str !== id));
+    } else {
+      setCheckedDiscounts([...checkedDiscounts, id]);
+    }
+    setIsCheck(!isCheck);
+  };
+  return (
+    <Stack
+      direction={'row'}
+      justifyContent={'space-between'}
+      alignItems={'center'}
+      key={id}
+      onClick={handleCheck}
+    >
+      <Box sx={{ flexGrow: 1 }}>
+        <Typography
+          variant="h6"
+          sx={{
+            maxWidth: '80%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: '2',
+            WebkitBoxOrient: 'vertical',
+          }}
+        >
+          {discount.name}
+        </Typography>
+        <Typography variant="subtitle2" color="#EC8AAE">
+          {Math.round(discount.rate * 100)}%
+        </Typography>
+      </Box>
+      {isCheck && (
+        <Icon
+          icon={'fontisto:check'}
+          color={'#9A85ED'}
+          style={{ minWidth: '22px' }}
+        />
+      )}
+    </Stack>
   );
 }

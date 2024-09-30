@@ -9,6 +9,7 @@ import { TransitionProps } from '@mui/material/transitions';
 import Typography from '@mui/material/Typography';
 import * as React from 'react';
 import { Service } from '../@types/Service';
+import comma from '../utils/comma';
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -22,9 +23,13 @@ const Transition = React.forwardRef(function Transition(
 export default function Services({
   services,
   setSelectedServices,
+  selectedServices,
 }: {
   services: { [key: string]: Service };
-  setSelectedServices: React.Dispatch<React.SetStateAction<string[]>>;
+  setSelectedServices: React.Dispatch<
+    React.SetStateAction<{ [key: string]: Service }>
+  >;
+  selectedServices: { [key: string]: Service };
 }) {
   const [open, setOpen] = React.useState(false);
   const [checkedServices, setCheckedServices] = React.useState<string[]>([]);
@@ -38,7 +43,11 @@ export default function Services({
   };
 
   const handleSubmit = () => {
-    setSelectedServices([...checkedServices]);
+    const newObj: { [key: string]: Service } = {};
+    checkedServices.map((el: string) => {
+      newObj[el] = { ...services[el], count: selectedServices[el]?.count ?? 1 };
+    });
+    setSelectedServices({ ...newObj });
     handleClose();
   };
 
@@ -190,11 +199,10 @@ function ServiceItem({
       key={id}
       onClick={handleCheck}
     >
-      <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ flexGrow: 1, maxWidth: '80%' }}>
         <Typography
           variant="h6"
           sx={{
-            maxWidth: '80%',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             display: '-webkit-box',
@@ -205,7 +213,7 @@ function ServiceItem({
           {service.name}
         </Typography>
         <Typography variant="subtitle2" color="#b3b3b3">
-          {service.price}원
+          {comma(service.price)}원
         </Typography>
       </Box>
       {isCheck && (
