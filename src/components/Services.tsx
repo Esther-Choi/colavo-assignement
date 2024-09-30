@@ -47,6 +47,7 @@ export default function Services({
     checkedServices.map((el: string) => {
       newObj[el] = { ...services[el], count: selectedServices[el]?.count ?? 1 };
     });
+
     setSelectedServices({ ...newObj });
     handleClose();
   };
@@ -113,16 +114,7 @@ export default function Services({
             </Toolbar>
           </AppBar>
         </Box>
-        <Stack sx={{ p: 2, pb: 18 }} gap={1}>
-          <Stack direction={'row'} justifyContent={'space-between'}>
-            <Typography variant="subtitle2" color="#b3b3b3">
-              커트
-            </Typography>
-            <Typography variant="subtitle2" color="#b3b3b3">
-              바버,헤어
-            </Typography>
-          </Stack>
-          <Divider />
+        <Stack sx={{ p: 2, pb: 18, pt: 8 }} gap={1}>
           <Stack gap={2}>
             {Object.keys(services)?.map((id: string) => (
               <ServiceItem

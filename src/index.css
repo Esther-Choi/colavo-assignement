@@ -12,6 +12,11 @@ code {
     monospace;
 }
 
+.App {
+  max-width: 360px;
+  margin: 0 auto;
+}
+
 button,
 button:hover {
   box-shadow: none !important;

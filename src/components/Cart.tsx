@@ -80,13 +80,13 @@ export default function Cart() {
       price += services[id].price * (selectedServices[id].count ?? 0);
     });
 
-    Object.values(selectedDiscounts).forEach((discount) => {
-      discount.targets.forEach((serviceId) => {
+    Object.keys(selectedDiscounts).forEach((discountId) => {
+      selectedDiscounts[discountId].targets.forEach((serviceId) => {
         if (selectedServices[serviceId]) {
           discountPrice +=
             services[serviceId].price *
             selectedServices[serviceId].count *
-            discount.rate;
+            selectedDiscounts[discountId].rate;
         }
       });
     });
@@ -113,8 +113,12 @@ export default function Cart() {
 
   return (
     <React.Fragment>
-      <Button variant="outlined" onClick={handleClickOpen}>
-        Open full-screen dialog
+      <Button
+        variant="outlined"
+        onClick={handleClickOpen}
+        sx={{ color: '#AE9EF0', borderColor: '#AE9EF0' }}
+      >
+        결제입력
       </Button>
       <Dialog
         fullScreen
@@ -168,7 +172,7 @@ export default function Cart() {
                 <ServiceItem
                   key={id}
                   id={id}
-                  service={services[id]}
+                  service={selectedServices[id]}
                   onChangeCount={onChangeCount}
                 />
               ))}
@@ -245,7 +249,7 @@ function ServiceItem({
           {service.name}
         </Typography>
         <Typography variant="subtitle2" color="#b3b3b3">
-          {comma(service.price)}원
+          {comma(service.price * service.count)}원
         </Typography>
       </Box>
       <QuantityInput onChangeCount={onChangeCount} id={id} />
@@ -301,7 +305,7 @@ function DiscountItem({
           discount.rate;
       }
     });
-    setDiscountPrice(price);
+    setDiscountPrice(Math.round(price));
   }, [discount.targets, selectedServices]);
 
   return (
@@ -395,7 +399,6 @@ function DiscountItem({
                 <MenuServiceItem
                   id={id}
                   service={selectedServices[id]}
-                  selectedServices={discount.targets}
                   check={discount.targets.includes(id)}
                   handleCheckDiscountItem={handleCheckDiscountItem}
                 />
@@ -429,27 +432,17 @@ function DiscountItem({
 function MenuServiceItem({
   id,
   service,
-  selectedServices,
   check,
   handleCheckDiscountItem,
-}: // checkedServices,
-{
+}: {
   id: string;
   service: Service;
-  selectedServices: string[];
   check: boolean;
   handleCheckDiscountItem: (id: string, check: boolean) => void;
-  // setCheckedServices: React.Dispatch<React.SetStateAction<string[]>>;
-  // checkedServices: string[];
 }) {
   const [isCheck, setIsCheck] = React.useState<boolean>(check);
 
   const handleCheck = () => {
-    // if (isCheck) {
-    //   setCheckedServices(checkedServices.filter((str) => str !== id));
-    // } else {
-    //   setCheckedServices([...checkedServices, id]);
-    // }
     handleCheckDiscountItem(id, !isCheck);
     setIsCheck(!isCheck);
   };
